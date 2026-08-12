@@ -43,6 +43,12 @@ uv run gemma-clinc baseline --config configs/phase1_zero_shot.yaml --limit 25
 
 The Windows lockfile selects PyTorch's official CUDA 12.8 wheels, so a separate CUDA Toolkit installation is not required. A current NVIDIA driver is still required. The first GPU installation downloads a large CUDA-enabled PyTorch wheel and can take several minutes.
 
+### Why the CUDA index is configured
+
+The `gpu` extra declares the PyTorch version, but the PyTorch version alone does not guarantee a CUDA-enabled wheel. During setup, resolving `torch==2.11.0` by default selected the CPU build, so PyTorch reported `cuda=False` despite the machine having an NVIDIA RTX 4070 Laptop GPU. The project therefore points Windows to PyTorch's official `cu128` index, which resolves the CUDA 12.8 build (`torch==2.11.0+cu128`).
+
+This decision is intentionally scoped to Windows because this project is developed and evaluated on the author's Windows laptop. The marker does not mean CUDA is Windows-only: Linux supports CUDA too, but its platform-specific dependency resolution is not pinned here. On non-Windows systems, `uv` resolves the regular PyPI package instead. Supporting additional CUDA platforms will be a separate portability change rather than an implicit behavior.
+
 Remove `--limit 25` for the full official test split. Results are written to a timestamped directory under `artifacts/phase1/`; raw model outputs are retained for auditing.
 
 For a CPU-only development environment, install only the test dependencies:
@@ -60,6 +66,7 @@ uv run ruff check .
 - All experiment behavior comes from a committed YAML configuration.
 - Raw predictions and run metadata are saved before aggregate metrics are calculated.
 - Dependencies are locked with `uv.lock`.
+- On Windows, the GPU extra resolves PyTorch from the official CUDA 12.8 index because the default resolution selected a CPU build.
 
 See [the experiment protocol](docs/experiment_protocol.md) for the evaluation contract and [the contribution guide](CONTRIBUTING.md) for the branch and pull-request workflow.
 
