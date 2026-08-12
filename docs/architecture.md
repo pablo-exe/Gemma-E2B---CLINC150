@@ -18,7 +18,6 @@ YAML config
 
 - **Official source:** data is downloaded from `clinc/oos-eval`, avoiding hidden dataset transformations.
 - **Windows CUDA resolution:** `torch==2.11.0` is routed to PyTorch's official `cu128` index only on Windows. The unqualified default resolved a CPU wheel during setup, which would ignore the available RTX 4070. This is a deliberate scope decision for the current Windows development environment; it does not claim that CUDA is unavailable on Linux.
-- **uv build backend:** the project uses `uv_build` because it is a pure-Python package with the standard `src/gemma_clinc` layout. The module name is declared explicitly because the distribution name uses the suffix `-distillation`. Hatchling would add flexibility we do not currently need, such as custom build hooks or more complex packaging rules.
 - **Configuration as data:** model, prompt, split and generation settings live in committed YAML files.
 - **Lazy GPU imports:** tests and analysis can run without installing the large GPU dependency group.
 - **Auditable outputs:** raw generations are retained next to parsed predictions.

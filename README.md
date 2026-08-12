@@ -4,7 +4,6 @@
 
 A reproducible knowledge-distillation study: can a small, locally runnable Gemma model become a better intent classifier through supervised and teacher-generated data?
 
-The package is built with uv's native `uv_build` backend. This keeps the packaging setup consistent with the project's uv-based workflow; the code is pure Python and follows uv's standard `src/` layout, so Hatchling's additional build flexibility is not needed.
 
 The project uses **Gemma 4 E2B IT** as the student and **CLINC150** as the benchmark. CLINC150 contains 150 in-scope intents across 10 domains plus out-of-scope (OOS) queries. Phase 1 establishes the untouched zero-shot baseline against which every later experiment will be compared.
 
