@@ -10,7 +10,7 @@
 6. Merge only after CI passes and the experiment protocol remains satisfied.
 
 ```powershell
-uv sync --extra dev
+uv sync --group dev
 uv run ruff check .
 uv run ruff format --check .
 uv run pytest --cov=gemma_clinc
@@ -26,4 +26,3 @@ test: cover invalid label parsing
 docs: record phase 1 experiment results
 fix: preserve OOS examples during evaluation
 ```
-

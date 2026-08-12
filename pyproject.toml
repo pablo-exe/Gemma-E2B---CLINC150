@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling>=1.27"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.11.26,<0.12"]
+build-backend = "uv_build"
 
 [project]
 name = "gemma-clinc-distillation"
@@ -23,7 +23,7 @@ gpu = [
   "transformers>=5.15,<6",
 ]
 
-[dependency-group]
+[dependency-groups]
 dev = [
   "pytest>=8.3,<9",
   "pytest-cov>=6,<7",
@@ -33,8 +33,8 @@ dev = [
 [project.scripts]
 gemma-clinc = "gemma_clinc.cli:main"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/gemma_clinc"]
+[tool.uv.build-backend]
+module-name = "gemma_clinc"
 
 [tool.pytest.ini_options]
 addopts = "-q --strict-markers"
