@@ -18,11 +18,10 @@ jobs:
         with:
           enable-cache: true
       - name: Install development dependencies
-        run: uv sync --extra dev --locked
+        run: uv sync --group dev --locked
       - name: Lint
         run: uv run ruff check .
       - name: Format
         run: uv run ruff format --check .
       - name: Test
         run: uv run pytest --cov=gemma_clinc --cov-report=term-missing
-
