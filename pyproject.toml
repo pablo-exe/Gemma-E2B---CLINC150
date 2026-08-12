@@ -21,6 +21,7 @@ gpu = [
   "bitsandbytes>=0.46,<1",
   "pillow>=11,<12",
   "torch==2.11.0",
+  "torchvision==0.26.0",
   "transformers>=5.15,<6",
 ]
 
@@ -50,6 +51,9 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.uv.sources]
 torch = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'win32'" },
+]
+torchvision = [
   { index = "pytorch-cu128", marker = "sys_platform == 'win32'" },
 ]
 
