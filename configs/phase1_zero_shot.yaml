@@ -1,0 +1,31 @@
+experiment:
+  name: phase1_zero_shot
+  seed: 42
+
+dataset:
+  source_url: https://raw.githubusercontent.com/clinc/oos-eval/master/data/data_full.json
+  cache_path: data/raw/clinc150_full.json
+  split: test
+  include_oos: true
+
+model:
+  id: google/gemma-4-E2B-it
+  quantization: 4bit
+  dtype: float16
+  device_map: auto
+
+prompt:
+  include_label_descriptions: false
+  system: >-
+    You are an intent classification system. Select exactly one label from the
+    allowed labels. Use out_of_scope only when none of the other labels applies.
+    Return only the label name, with no explanation or punctuation.
+
+generation:
+  max_new_tokens: 16
+  do_sample: false
+
+output:
+  root_dir: artifacts/phase1
+  checkpoint_every: 25
+
