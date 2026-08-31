@@ -22,9 +22,7 @@ class ModelConfig:
     id: str
     quantization: str = "4bit"
     dtype: str = "float16"
-    device_map: str | dict[str, str | int] = "auto"
-    offload_per_layer_embeddings: bool = False
-    text_only: bool = False
+    device_map: str = "auto"
 
 
 @dataclass(frozen=True)
