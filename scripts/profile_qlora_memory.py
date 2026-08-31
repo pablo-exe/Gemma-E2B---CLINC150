@@ -78,9 +78,7 @@ def main() -> None:
     )
 
     dataset_path = download_dataset(config.dataset.source_url, config.dataset.cache_path)
-    train_examples = load_examples(
-        dataset_path, "train", include_oos=config.dataset.include_oos
-    )
+    train_examples = load_examples(dataset_path, "train", include_oos=config.dataset.include_oos)
     known_labels = labels_from_examples(train_examples)
     system_prompt = (
         "Classify the user request into one CLINC150 intent. Return only the "
