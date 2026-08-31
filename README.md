@@ -42,6 +42,14 @@ uv run hf auth login
 uv run gemma-clinc baseline --config configs/phase1_zero_shot.yaml --limit 25
 ```
 
+The committed configuration uses a measured low-VRAM text-only path: Gemma 4's
+large per-layer embedding table stays in system RAM and the unused audio and
+vision towers are released. On the development RTX 4070 Laptop GPU, a real QLoRA
+optimizer step over the longest compact CLINC150 training example peaks at
+2,337 MiB according to `nvidia-smi`.
+See [the hardware memory profile](docs/hardware_memory_profile.md) for the method,
+raw measurements and the reproducible profiling command.
+
 The Windows lockfile selects PyTorch's official CUDA 12.8 wheels, so a separate CUDA Toolkit installation is not required. A current NVIDIA driver is still required. The first GPU installation downloads a large CUDA-enabled PyTorch wheel and can take several minutes.
 
 ### Why the CUDA index is configured
