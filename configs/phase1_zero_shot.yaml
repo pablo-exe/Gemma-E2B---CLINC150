@@ -12,7 +12,9 @@ model:
   id: google/gemma-4-E2B-it
   quantization: 4bit
   dtype: float16
-  device_map: auto
+  device_map: {"": 0}
+  offload_per_layer_embeddings: true
+  text_only: true
 
 prompt:
   include_label_descriptions: false
@@ -28,4 +30,3 @@ generation:
 output:
   root_dir: artifacts/phase1
   checkpoint_every: 25
-
