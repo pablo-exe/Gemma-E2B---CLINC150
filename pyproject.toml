@@ -24,6 +24,9 @@ gpu = [
   "torchvision==0.26.0",
   "transformers>=5.15,<6",
 ]
+train = [
+  "peft>=0.20,<1",
+]
 
 [dependency-groups]
 dev = [
