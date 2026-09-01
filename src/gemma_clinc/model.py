@@ -38,8 +38,13 @@ class GemmaClassifier:
         elif self.model_config.quantization != "none":
             raise ValueError("quantization must be '4bit' or 'none'")
 
-        self.processor = AutoProcessor.from_pretrained(self.model_config.id)
-        self.model = AutoModelForMultimodalLM.from_pretrained(self.model_config.id, **model_kwargs)
+        source_kwargs: dict[str, Any] = {}
+        if self.model_config.revision is not None:
+            source_kwargs["revision"] = self.model_config.revision
+        self.processor = AutoProcessor.from_pretrained(self.model_config.id, **source_kwargs)
+        self.model = AutoModelForMultimodalLM.from_pretrained(
+            self.model_config.id, **source_kwargs, **model_kwargs
+        )
         if self.model_config.offload_per_layer_embeddings:
             self._replace_offloaded_embeddings()
         if self.model_config.text_only:
@@ -139,3 +144,12 @@ class GemmaClassifier:
             do_sample=self.generation_config.do_sample,
         )
         return self.processor.decode(outputs[0][input_length:], skip_special_tokens=True)
+
+    def load_adapter(self, adapter_path: str) -> None:
+        """Attach a saved PEFT adapter to an already loaded base model."""
+        if self.model is None:
+            raise RuntimeError("load() must be called before load_adapter()")
+        from peft import PeftModel
+
+        self.model = PeftModel.from_pretrained(self.model, adapter_path)
+        self.model.eval()

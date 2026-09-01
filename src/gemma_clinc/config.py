@@ -20,6 +20,7 @@ class DatasetConfig:
 @dataclass(frozen=True)
 class ModelConfig:
     id: str
+    revision: str | None = None
     quantization: str = "4bit"
     dtype: str = "float16"
     device_map: str | dict[str, str | int] = "auto"
@@ -52,6 +53,7 @@ class TrainingConfig:
     lora_dropout: float = 0.05
     target_modules: tuple[str, ...] = ("q_proj", "v_proj")
     log_every: int = 25
+    eval_every_epochs: int = 1
 
     def __post_init__(self) -> None:
         if self.epochs < 1:
@@ -64,6 +66,8 @@ class TrainingConfig:
             raise ValueError("LoRA rank and alpha must be positive")
         if not self.target_modules:
             raise ValueError("training.target_modules cannot be empty")
+        if self.eval_every_epochs < 1:
+            raise ValueError("training.eval_every_epochs must be at least 1")
 
 
 @dataclass(frozen=True)

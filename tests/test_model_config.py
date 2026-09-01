@@ -34,3 +34,10 @@ def test_embedding_offload_rejects_unquantized_loading():
 
     with pytest.raises(ValueError, match="requires 4-bit"):
         classifier._device_map()
+
+
+def test_adapter_requires_loaded_base_model():
+    classifier = GemmaClassifier(ModelConfig(id="test/model"), GenerationConfig())
+
+    with pytest.raises(RuntimeError, match=r"load\(\) must be called"):
+        classifier.load_adapter("adapter")

@@ -10,6 +10,7 @@ dataset:
 
 model:
   id: google/gemma-4-E2B-it
+  revision: 3e22461f65e89153144f8adb70e3b8c2cc9845a7
   quantization: 4bit
   dtype: float16
   device_map: {"": 0}
@@ -38,6 +39,7 @@ training:
   lora_dropout: 0.05
   target_modules: [q_proj, v_proj]
   log_every: 25
+  eval_every_epochs: 1
 
 output:
   root_dir: artifacts/phase2

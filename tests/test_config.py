@@ -21,6 +21,7 @@ def test_phase2_training_config_loads():
 
     assert config.name == "phase2_qlora_sft"
     assert config.dataset.split == "val"
+    assert config.model.revision == "3e22461f65e89153144f8adb70e3b8c2cc9845a7"
     assert config.training is not None
     assert config.training.epochs == 3
     assert config.training.gradient_accumulation_steps == 16
