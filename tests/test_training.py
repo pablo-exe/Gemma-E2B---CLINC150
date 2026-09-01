@@ -1,10 +1,12 @@
 import pytest
 import torch
 
+from gemma_clinc.config import load_config
 from gemma_clinc.data import Example
 from gemma_clinc.training import (
     _encode_training_example,
     optimizer_step_count,
+    run_adapter_evaluation,
     select_lora_target_names,
 )
 
@@ -67,3 +69,12 @@ def test_encode_training_example_aligns_logits_with_only_assistant_tokens():
     assert batch["input_ids"].tolist() == [[1, 2, 3, 7, 8]]
     assert targets.tolist() == [[7, 8]]
     assert logit_indices.tolist() == [2, 3]
+
+
+def test_adapter_evaluation_rejects_training_split_before_loading_model():
+    with pytest.raises(ValueError, match="must be 'val' or 'test'"):
+        run_adapter_evaluation(
+            load_config("configs/phase2_qlora_sft.yaml"),
+            "adapter",
+            split="train",
+        )

@@ -86,6 +86,13 @@ def _limited(examples: list[Example], limit: int | None, name: str) -> list[Exam
     return examples[:limit]
 
 
+def _text_config(model: Any) -> Any:
+    config = model.config
+    if hasattr(config, "get_text_config"):
+        return config.get_text_config()
+    return config
+
+
 def _prepare_qlora_model(classifier: GemmaClassifier, config: TrainingConfig) -> Any:
     from bitsandbytes.nn import Linear4bit
     from peft import LoraConfig, get_peft_model
@@ -96,7 +103,7 @@ def _prepare_qlora_model(classifier: GemmaClassifier, config: TrainingConfig) ->
     )
     for parameter in model.parameters():
         parameter.requires_grad = False
-    model.config.use_cache = False
+    _text_config(model).use_cache = False
     model.gradient_checkpointing_enable()
     model.enable_input_require_grads()
     model = get_peft_model(
@@ -156,9 +163,11 @@ def _evaluate(
     predictions_path: Path,
 ) -> dict[str, Any]:
     model = classifier.model
+    was_training = model.training
     model.eval()
-    previous_cache = model.config.use_cache
-    model.config.use_cache = True
+    text_config = _text_config(model)
+    previous_cache = text_config.use_cache
+    text_config.use_cache = True
     y_true: list[str] = []
     y_pred: list[str | None] = []
     try:
@@ -180,9 +189,66 @@ def _evaluate(
             y_true.append(example.label)
             y_pred.append(prediction)
     finally:
-        model.config.use_cache = previous_cache
-        model.train()
+        text_config.use_cache = previous_cache
+        model.train(was_training)
     return compute_metrics(y_true, y_pred)
+
+
+def run_adapter_evaluation(
+    config: ExperimentConfig,
+    adapter_path: str | Path,
+    *,
+    split: str = "val",
+    limit: int | None = None,
+) -> Path:
+    """Evaluate a saved Phase 2 adapter on validation or the held-out test split."""
+    if split not in {"val", "test"}:
+        raise ValueError("adapter evaluation split must be 'val' or 'test'")
+
+    dataset_path = download_dataset(config.dataset.source_url, config.dataset.cache_path)
+    train_examples = load_examples(
+        dataset_path, "train", include_oos=config.dataset.include_oos
+    )
+    examples = _limited(
+        load_examples(dataset_path, split, include_oos=config.dataset.include_oos),
+        limit,
+        "limit",
+    )
+    labels = labels_from_examples(train_examples)
+    adapter = Path(adapter_path)
+    if not adapter.exists():
+        raise FileNotFoundError(f"adapter not found: {adapter}")
+
+    run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    run_dir = config.output.root_dir / f"{config.name}_{split}_evaluation_{run_id}"
+    run_dir.mkdir(parents=True, exist_ok=False)
+    classifier = GemmaClassifier(config.model, config.generation)
+    classifier.load()
+    classifier.load_adapter(str(adapter))
+    predictions_path = run_dir / "predictions.jsonl"
+    metrics = _evaluate(
+        classifier,
+        examples,
+        labels,
+        config.prompt.system,
+        predictions_path,
+    )
+    _write_json(run_dir / "metrics.json", metrics)
+    _write_json(
+        run_dir / "run_metadata.json",
+        {
+            "run_id": run_id,
+            "evaluated_at": datetime.now(UTC).isoformat(),
+            "git_commit": _git_commit(),
+            "dataset_sha256": _sha256(dataset_path),
+            "adapter": str(adapter.resolve()),
+            "split": split,
+            "limit": limit,
+            "n_examples": len(examples),
+            "config": asdict(config),
+        },
+    )
+    return run_dir
 
 
 def run_sft(
