@@ -52,6 +52,7 @@ class TrainingConfig:
     lora_alpha: int = 16
     lora_dropout: float = 0.05
     target_modules: tuple[str, ...] = ("q_proj", "v_proj")
+    gradient_checkpointing: bool = False
     log_every: int = 25
     eval_every_epochs: int = 1
 

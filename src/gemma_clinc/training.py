@@ -104,8 +104,9 @@ def _prepare_qlora_model(classifier: GemmaClassifier, config: TrainingConfig) ->
     for parameter in model.parameters():
         parameter.requires_grad = False
     _text_config(model).use_cache = False
-    model.gradient_checkpointing_enable()
-    model.enable_input_require_grads()
+    if config.gradient_checkpointing:
+        model.gradient_checkpointing_enable()
+        model.enable_input_require_grads()
     model = get_peft_model(
         model,
         LoraConfig(

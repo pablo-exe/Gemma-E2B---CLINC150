@@ -38,6 +38,7 @@ training:
   lora_alpha: 16
   lora_dropout: 0.05
   target_modules: [q_proj, v_proj]
+  gradient_checkpointing: false
   log_every: 25
   eval_every_epochs: 1
 

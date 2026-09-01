@@ -26,3 +26,4 @@ def test_phase2_training_config_loads():
     assert config.training.epochs == 3
     assert config.training.gradient_accumulation_steps == 16
     assert config.training.target_modules == ("q_proj", "v_proj")
+    assert config.training.gradient_checkpointing is False
