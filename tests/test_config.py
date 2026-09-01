@@ -13,3 +13,15 @@ def test_phase1_config_loads():
     assert config.dataset.split == "test"
     assert config.dataset.include_oos is True
     assert config.generation.do_sample is False
+    assert config.training is None
+
+
+def test_phase2_training_config_loads():
+    config = load_config("configs/phase2_qlora_sft.yaml")
+
+    assert config.name == "phase2_qlora_sft"
+    assert config.dataset.split == "val"
+    assert config.training is not None
+    assert config.training.epochs == 3
+    assert config.training.gradient_accumulation_steps == 16
+    assert config.training.target_modules == ("q_proj", "v_proj")

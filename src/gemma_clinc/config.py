@@ -40,6 +40,33 @@ class GenerationConfig:
 
 
 @dataclass(frozen=True)
+class TrainingConfig:
+    epochs: int = 3
+    learning_rate: float = 2e-4
+    weight_decay: float = 0.01
+    gradient_accumulation_steps: int = 16
+    max_grad_norm: float = 1.0
+    warmup_ratio: float = 0.03
+    lora_rank: int = 8
+    lora_alpha: int = 16
+    lora_dropout: float = 0.05
+    target_modules: tuple[str, ...] = ("q_proj", "v_proj")
+    log_every: int = 25
+
+    def __post_init__(self) -> None:
+        if self.epochs < 1:
+            raise ValueError("training.epochs must be at least 1")
+        if self.learning_rate <= 0:
+            raise ValueError("training.learning_rate must be positive")
+        if self.gradient_accumulation_steps < 1:
+            raise ValueError("training.gradient_accumulation_steps must be at least 1")
+        if self.lora_rank < 1 or self.lora_alpha < 1:
+            raise ValueError("LoRA rank and alpha must be positive")
+        if not self.target_modules:
+            raise ValueError("training.target_modules cannot be empty")
+
+
+@dataclass(frozen=True)
 class OutputConfig:
     root_dir: Path
     checkpoint_every: int = 25
@@ -54,6 +81,7 @@ class ExperimentConfig:
     prompt: PromptConfig
     generation: GenerationConfig
     output: OutputConfig
+    training: TrainingConfig | None = None
 
 
 def load_config(path: str | Path) -> ExperimentConfig:
@@ -63,6 +91,14 @@ def load_config(path: str | Path) -> ExperimentConfig:
         raw: dict[str, Any] = yaml.safe_load(handle)
 
     experiment = raw["experiment"]
+    training_raw = raw.get("training")
+    training = None
+    if training_raw is not None:
+        training_values = dict(training_raw)
+        if "target_modules" in training_values:
+            training_values["target_modules"] = tuple(training_values["target_modules"])
+        training = TrainingConfig(**training_values)
+
     return ExperimentConfig(
         name=experiment["name"],
         seed=int(experiment["seed"]),
@@ -79,4 +115,5 @@ def load_config(path: str | Path) -> ExperimentConfig:
             root_dir=Path(raw["output"]["root_dir"]),
             checkpoint_every=int(raw["output"].get("checkpoint_every", 25)),
         ),
+        training=training,
     )
