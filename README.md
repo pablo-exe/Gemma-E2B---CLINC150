@@ -12,7 +12,7 @@ The project uses **Gemma 4 E2B IT** as the student and **CLINC150** as the bench
 | Phase | Experiment | Status |
 |---|---|---|
 | 1 | Reproducible zero-shot baseline | Implemented |
-| 2 | QLoRA supervised fine-tuning on official training data | Planned |
+| 2 | QLoRA supervised fine-tuning on official training data | Pilot-ready |
 | 3 | Response-based distillation from a frontier teacher | Planned |
 | 4 | Error-focused distillation on confusing intent pairs | Planned |
 | 5 | Final ablations and analysis | Planned |
@@ -49,6 +49,25 @@ optimizer step over the longest compact CLINC150 training example peaks at
 2,337 MiB according to `nvidia-smi`.
 See [the hardware memory profile](docs/hardware_memory_profile.md) for the method,
 raw measurements and the reproducible profiling command.
+
+## Phase 2: supervised QLoRA
+
+Phase 2 trains a response-only LoRA adapter on the official CLINC150 training
+split and selects checkpoints using macro-F1 on validation. Start with the
+balanced pilot before launching the complete run:
+
+```powershell
+uv sync --extra gpu --extra train
+uv run gemma-clinc train-sft `
+  --config configs/phase2_qlora_sft.yaml `
+  --train-limit 1510 `
+  --eval-limit 302 `
+  --max-steps 95
+```
+
+Remove all three limit flags for the committed three-epoch experiment. See the
+[Phase 2 runbook](docs/phase2_sft.md) for smoke tests, expected runtime, artifacts
+and final adapter evaluation.
 
 The Windows lockfile selects PyTorch's official CUDA 12.8 wheels, so a separate CUDA Toolkit installation is not required. A current NVIDIA driver is still required. The first GPU installation downloads a large CUDA-enabled PyTorch wheel and can take several minutes.
 

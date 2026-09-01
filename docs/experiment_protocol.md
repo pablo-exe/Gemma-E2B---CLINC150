@@ -30,6 +30,25 @@ Generation is greedy with thinking disabled. The parser accepts a single known l
 
 The baseline uses no CLINC150 demonstrations, descriptions or teacher outputs.
 
+## Phase 2: supervised QLoRA baseline
+
+The student is trained only on the official train partition. Each example uses a
+compact system instruction, the original utterance and the gold intent as the
+assistant response. The complete label list is not repeated in every training
+prompt; learning that mapping is the purpose of supervised adaptation.
+
+The loss covers only assistant response tokens, including the turn terminator.
+Prompt and user tokens are context and never targets. The selected configuration
+uses NF4 double quantization, LoRA rank 8 on text-language `q_proj` and `v_proj`,
+micro-batch size 1, gradient accumulation 16, learning rate 2e-4, linear decay
+with 3% warmup and three epochs. The PLE remains in system RAM and unused audio
+and vision towers are removed.
+
+An adapter is saved after each epoch. Checkpoint selection uses validation
+macro-F1; validation predictions and raw generations are retained. The test split
+must not be evaluated until the Phase 2 configuration and best checkpoint are
+frozen. Pilot limits are deterministic and stratified across labels.
+
 ## Metrics
 
 The primary metric is macro-F1 over the 151 expected classes. Secondary metrics are:
@@ -53,4 +72,3 @@ Every reported score must identify the Git commit, configuration file, model rev
 | KD-H | Hard negative and boundary examples | Improve confusing intent pairs |
 
 Teacher-generated data will be versioned by prompts, generation parameters and content hashes. It will not be committed if provider terms prohibit redistribution.
-

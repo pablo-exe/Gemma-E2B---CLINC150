@@ -30,3 +30,17 @@ YAML config
 - **No committed weights or raw data:** large artifacts and third-party content remain outside Git.
 
 The model backend is intentionally behind a small `predict` interface. Later phases can add a fine-tuned adapter or a mock backend without changing the evaluator.
+
+## Phase 2 training path
+
+```text
+official train split -> compact chat template -> response-token loss
+        -> NF4 Gemma + CPU PLE + LoRA(q_proj, v_proj)
+        -> adapter checkpoint -> validation generation -> macro-F1 selection
+```
+
+The training loop uses micro-batches of one and gradient accumulation, so it does
+not pad short CLINC utterances or construct full-sequence vocabulary logits. Only
+the assistant label positions are projected to the 262,144-token vocabulary.
+Limited pilot subsets are selected round-robin by label rather than taking a
+biased prefix of the source file.
