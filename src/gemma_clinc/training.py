@@ -78,12 +78,35 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _limited(examples: list[Example], limit: int | None, name: str) -> list[Example]:
+def stratified_limit(
+    examples: list[Example], limit: int | None, name: str = "limit"
+) -> list[Example]:
+    """Return a deterministic round-robin subset across all labels."""
     if limit is None:
         return examples
     if limit < 1:
         raise ValueError(f"{name} must be a positive integer")
-    return examples[:limit]
+    if limit >= len(examples):
+        return examples
+
+    buckets: dict[str, list[Example]] = {}
+    for example in examples:
+        buckets.setdefault(example.label, []).append(example)
+    offsets = dict.fromkeys(buckets, 0)
+    selected: list[Example] = []
+    while len(selected) < limit:
+        added = False
+        for label, bucket in buckets.items():
+            offset = offsets[label]
+            if offset < len(bucket):
+                selected.append(bucket[offset])
+                offsets[label] += 1
+                added = True
+                if len(selected) == limit:
+                    break
+        if not added:
+            break
+    return selected
 
 
 def _text_config(model: Any) -> Any:
@@ -210,7 +233,7 @@ def run_adapter_evaluation(
     train_examples = load_examples(
         dataset_path, "train", include_oos=config.dataset.include_oos
     )
-    examples = _limited(
+    examples = stratified_limit(
         load_examples(dataset_path, split, include_oos=config.dataset.include_oos),
         limit,
         "limit",
@@ -280,8 +303,8 @@ def run_sft(
     all_train_examples = load_examples(
         dataset_path, "train", include_oos=config.dataset.include_oos
     )
-    train_examples = _limited(all_train_examples, train_limit, "train_limit")
-    validation_examples = _limited(
+    train_examples = stratified_limit(all_train_examples, train_limit, "train_limit")
+    validation_examples = stratified_limit(
         load_examples(dataset_path, "val", include_oos=config.dataset.include_oos),
         eval_limit,
         "eval_limit",

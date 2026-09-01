@@ -8,6 +8,7 @@ from gemma_clinc.training import (
     optimizer_step_count,
     run_adapter_evaluation,
     select_lora_target_names,
+    stratified_limit,
 )
 
 
@@ -78,3 +79,17 @@ def test_adapter_evaluation_rejects_training_split_before_loading_model():
             "adapter",
             split="train",
         )
+
+
+def test_stratified_limit_round_robins_labels_deterministically():
+    examples = [
+        Example(id=f"a-{index}", text="a", label="a", split="train")
+        for index in range(3)
+    ] + [
+        Example(id=f"b-{index}", text="b", label="b", split="train")
+        for index in range(3)
+    ]
+
+    selected = stratified_limit(examples, 4)
+
+    assert [example.id for example in selected] == ["a-0", "b-0", "a-1", "b-1"]
