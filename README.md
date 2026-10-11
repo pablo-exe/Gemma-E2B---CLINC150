@@ -8,52 +8,14 @@ CLINC150 contains 150 in-scope intents across 10 domains plus out-of-scope (OOS)
 
 ## Results and research evidence
 
-Snapshot from the local artifacts on **11 October 2026**. Scores below are percentages, rounded to two decimals. Research tracks are independent approaches, with no required phase order.
+| Setup | Macro-F1 ↑ | Accuracy ↑ | In-scope accuracy ↑ | OOS F1 ↑ | Invalid outputs ↓ | Evidence |
+|---|---:|---:|---:|---:|---:|---|
+| Zero-shot | 72.05 | 72.42 | 74.33 | 23.08 | 1.52 | [Metrics][zs-val] |
+| QLoRA | **96.96** | 95.13 | 96.63 | 62.89 | 2.52 | [Metrics][sft-e3] |
+| Luna low | 52.45 | 56.70 | 48.64 | 48.60 | **0.00** | [Metrics][luna-low] |
+| Luna max | 89.78 | 93.20 | 93.32 | 91.05 | **0.00** | [Metrics][luna-max] |
+| Sol 6.1 low | 96.11 | **97.10** | 97.65 | 95.04 | **0.00** | [Metrics][sol-low] |
 
-| Research track | Current progress | Evidence / remaining work |
-|---|---|---|
-| Zero-shot Gemma reference | ✅ Full validation and test evaluations recorded | Fixed prompt, raw predictions and aggregate metrics |
-| Supervised fine-tuning with labeled data | ✅ Full QLoRA run completed on 15,100 training examples | Three checkpoints evaluated on validation; epoch 3 selected; full test evaluation still pending |
-| Teacher–student logits | ⬜ Not implemented yet | No teacher logits, distillation run or student results recorded |
-| Frontier models × reasoning levels | ✅ Blind 1,000-example evaluations recorded | Luna low/max and Sol 6.1 low; reference evaluations, not evidence of student distillation |
-
-### Gemma: baseline and supervised fine-tuning
-
-The validation rows use the complete official validation split (3,000 in-scope + 100 OOS examples). QLoRA uses the official labeled train split and a compact training/inference prompt; the zero-shot reference uses the full label vocabulary. The measured gain therefore describes the complete SFT setup, including its prompt, rather than an isolated adapter ablation.
-
-| Setup | Split | N | Macro-F1 ↑ | Accuracy ↑ | In-scope accuracy ↑ | OOS F1 ↑ | Invalid outputs ↓ | Evidence |
-|---|---|---:|---:|---:|---:|---:|---:|---|
-| Zero-shot | Validation | 3,100 | 72.05 | 72.42 | 74.33 | 23.08 | 1.52 | [Metrics][zs-val] |
-| QLoRA · epoch 1 | Validation | 3,100 | 94.72 | 91.00 | 93.70 | 18.02 | 6.26 | [Metrics][sft-e1] |
-| QLoRA · epoch 2 | Validation | 3,100 | 96.04 | 93.71 | 95.33 | 58.82 | 3.58 | [Metrics][sft-e2] |
-| **QLoRA · epoch 3 (selected)** | **Validation** | **3,100** | **96.96** | **95.13** | **96.63** | **62.89** | **2.52** | [Metrics][sft-e3] |
-| Zero-shot | Test | 5,500 | 66.95 | 61.49 | 72.24 | 23.04 | 3.84 | [Metrics][zs-test] |
-| QLoRA · selected adapter | Test | — | — | — | — | — | — | No full test result recorded |
-
-**Validation progress:** macro-F1 **72.05 → 94.72 → 96.04 → 96.96**. The selected SFT setup gains **24.91 percentage points** over zero-shot on validation. OOS remains the main weakness: epoch 3 has **84.75% OOS precision**, **50.00% recall**, and 37 OOS examples parsed as invalid. Its overall invalid-output rate also remains above zero-shot.
-
-The [training summary][sft-summary] records 2,832 optimizer steps, 1,339,392 trainable parameters and about 7.12 hours elapsed. The [run metadata][sft-meta] records the configuration, dataset hash, model revision and Git commit. Per-example evidence is retained in [zero-shot validation predictions][zs-val-pred] and [selected-adapter validation predictions][sft-pred]. Validation was used for checkpoint selection; these scores are not final held-out test results.
-
-### Frontier models: reasoning-level comparison
-
-The three agent evaluations contain the **same 1,000 test sample IDs, utterances and gold labels**, in the same order: 808 in-scope and 192 OOS examples, covering all 151 labels. Model names and reasoning levels follow the artifact directory names; exact provider model revisions and generation settings are not recorded in these metrics files.
-
-| Model | Reasoning | N | Macro-F1 ↑ | Accuracy ↑ | In-scope accuracy ↑ | OOS F1 ↑ | Invalid outputs ↓ | Evidence |
-|---|---|---:|---:|---:|---:|---:|---:|---|
-| Luna | low | 1,000 | 52.45 | 56.70 | 48.64 | 48.60 | 0.00 | [Metrics][luna-low] · [Predictions][luna-low-pred] |
-| Luna | max | 1,000 | 89.78 | 93.20 | 93.32 | 91.05 | 0.00 | [Metrics][luna-max] · [Predictions][luna-max-pred] |
-| **Sol 6.1** | **low** | **1,000** | **96.11** | **97.10** | **97.65** | **95.04** | **0.00** | [Metrics][sol-low] · [Predictions][sol-low-pred] |
-
-Luna's recorded max-reasoning run improves macro-F1 by **37.33 percentage points** over low. Luna low often maps valid intents to OOS (OOS precision **33.21%**, recall **90.63%**). Sol 6.1 low has the highest scores among these recorded frontier runs. These are single-run observations; frontier results on a test subset and Gemma results on full validation/test splits do not establish a shared leaderboard or a distillation gain.
-
-<details>
-<summary>Additional exploratory evidence and artifact availability</summary>
-
-The separate [Luna low ChatGPT 100-example evaluation][luna-100] reports 60.00% accuracy, 72.51% macro-F1, 0.00% OOS F1 and 29.00% invalid outputs. This smaller evaluation is kept separate because its sample size and output behavior differ. Tiny QLoRA smoke runs (1–4 validation examples) verify the execution path and are excluded from the performance table.
-
-Artifact links resolve in a local checkout containing the runs. `artifacts/` is ignored by Git, so these raw files are not published with the repository; this README preserves the result snapshot. Historical `phase1`/`phase2` paths are retained as run identifiers, not as a research sequence.
-
-</details>
 
 [zs-val]: artifacts/phase1/phase1_zero_shot_20261011T130041Z/metrics.json
 [zs-val-pred]: artifacts/phase1/phase1_zero_shot_20261011T130041Z/predictions.jsonl
