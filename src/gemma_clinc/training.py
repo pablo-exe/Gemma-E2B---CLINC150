@@ -121,9 +121,7 @@ def _prepare_qlora_model(classifier: GemmaClassifier, config: TrainingConfig) ->
     from peft import LoraConfig, get_peft_model
 
     model = classifier.model
-    targets = select_lora_target_names(
-        model.named_modules(), Linear4bit, config.target_modules
-    )
+    targets = select_lora_target_names(model.named_modules(), Linear4bit, config.target_modules)
     for parameter in model.parameters():
         parameter.requires_grad = False
     _text_config(model).use_cache = False
@@ -230,9 +228,7 @@ def run_adapter_evaluation(
         raise ValueError("adapter evaluation split must be 'val' or 'test'")
 
     dataset_path = download_dataset(config.dataset.source_url, config.dataset.cache_path)
-    train_examples = load_examples(
-        dataset_path, "train", include_oos=config.dataset.include_oos
-    )
+    train_examples = load_examples(dataset_path, "train", include_oos=config.dataset.include_oos)
     examples = stratified_limit(
         load_examples(dataset_path, split, include_oos=config.dataset.include_oos),
         limit,
@@ -391,9 +387,8 @@ def run_sft(
             epoch_loss += float(loss.detach())
             epoch_examples += 1
 
-            should_update = (
-                position % training.gradient_accumulation_steps == 0
-                or position == len(order)
+            should_update = position % training.gradient_accumulation_steps == 0 or position == len(
+                order
             )
             if should_update:
                 learning_rate_used = optimizer.param_groups[0]["lr"]

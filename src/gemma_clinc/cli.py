@@ -23,9 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
     train.add_argument("--eval-limit", type=int, default=None)
     train.add_argument("--max-steps", type=int, default=None)
 
-    evaluate = subparsers.add_parser(
-        "evaluate-adapter", help="Evaluate a saved Phase 2 adapter"
-    )
+    evaluate = subparsers.add_parser("evaluate-adapter", help="Evaluate a saved Phase 2 adapter")
     evaluate.add_argument("--config", required=True, help="Path to experiment YAML")
     evaluate.add_argument("--adapter", required=True, help="Saved PEFT adapter directory")
     evaluate.add_argument("--split", choices=("val", "test"), default="val")
