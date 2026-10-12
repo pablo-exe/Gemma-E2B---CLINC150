@@ -9,6 +9,7 @@ htmlcov/
 
 # Environments
 .venv/
+.venv-pod/
 .env
 
 # Model and experiment artifacts

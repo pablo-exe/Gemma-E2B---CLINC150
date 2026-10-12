@@ -24,4 +24,6 @@ jobs:
       - name: Format
         run: uv run ruff format --check .
       - name: Test
-        run: uv run pytest --cov=gemma_clinc --cov-report=term-missing
+        run: |
+          uv pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
+          uv run --no-sync pytest --cov=gemma_clinc --cov-report=term-missing

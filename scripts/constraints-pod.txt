@@ -1,0 +1,5 @@
+# Preserve the template's compatible PyTorch 2.8 CUDA stack during resolution.
+torch==2.8.0
+torchvision==0.23.0
+torchaudio==2.8.0
+triton==3.4.0

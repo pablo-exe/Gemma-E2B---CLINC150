@@ -1,0 +1,22 @@
+dataset:
+  source_url: https://raw.githubusercontent.com/clinc/oos-eval/master/data/data_full.json
+  cache_path: data/raw/clinc150_full.json
+  split: train
+teacher:
+  id: google/gemma-4-31B-it
+  revision: 842da3794eaa0b77d5f08bae87a17459d91ff475
+  quantization: 8bit
+  dtype: bfloat16
+student:
+  id: google/gemma-4-E2B-it
+  revision: 3e22461f65e89153144f8adb70e3b8c2cc9845a7
+teacher_system: >-
+  Classify the user request into one CLINC150 intent. Return only the lowercase
+  label with underscores. Choose out_of_scope if no allowed intent applies.
+student_system: >-
+  Classify the user request into one CLINC150 intent. Return only the lowercase
+  label with underscores. Valid labels were demonstrated during training.
+top_k: 128
+temperature: 2.0
+max_length: 4096
+output_dir: artifacts/teacher_logits/train_int8_t2_k128
