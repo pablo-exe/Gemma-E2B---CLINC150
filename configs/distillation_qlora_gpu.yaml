@@ -1,0 +1,48 @@
+experiment:
+  name: distillation_qlora_gpu_resident
+  seed: 42
+dataset:
+  source_url: https://raw.githubusercontent.com/clinc/oos-eval/master/data/data_full.json
+  cache_path: data/raw/clinc150_full.json
+  split: val
+  include_oos: true
+model:
+  id: google/gemma-4-E2B-it
+  revision: 3e22461f65e89153144f8adb70e3b8c2cc9845a7
+  quantization: 4bit
+  dtype: bfloat16
+  device_map:
+    ? ''
+    : 0
+  offload_per_layer_embeddings: false
+  text_only: true
+prompt:
+  include_label_descriptions: false
+  system: Classify the user request into one CLINC150 intent. Return only the lowercase
+    label with underscores. Valid labels were demonstrated during training.
+generation:
+  max_new_tokens: 16
+  do_sample: false
+training:
+  epochs: 3
+  learning_rate: 0.0002
+  weight_decay: 0.01
+  gradient_accumulation_steps: 16
+  max_grad_norm: 1.0
+  warmup_ratio: 0.03
+  lora_rank: 8
+  lora_alpha: 16
+  lora_dropout: 0.05
+  target_modules:
+  - q_proj
+  - v_proj
+  gradient_checkpointing: false
+  log_every: 10
+  eval_every_epochs: 1
+distillation:
+  teacher_data_dir: artifacts/teacher_logits/train_bf16_t2_k128
+  alpha: 0.5
+  temperature: 2.0
+output:
+  root_dir: artifacts/distillation
+  checkpoint_every: 50
